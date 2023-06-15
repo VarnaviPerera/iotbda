@@ -1,0 +1,53 @@
+#include <Servo.h>
+#include <DHT.h>
+
+#define DHTPIN 7
+#define DHTTYPE DHT11 
+
+DHT dht(DHTPIN, DHTTYPE);
+Servo myservo;
+
+void setup() {
+  Serial.begin(9600);
+  myservo.attach(9);
+  dht.begin();
+}
+
+void loop() {
+  float RH = dht.readHumidity();
+  float T = dht.readTemperature();
+  float f = dht.readTemperature(true);
+  float HI = -42.379 + 2.04901523*f + 10.14333127*RH - .22475541*f*RH - .00683783*f*f - .05481717*RH*RH 
++ .00122874*f*f*RH + .00085282*f*RH*RH - .00000199*f*f*RH*RH;
+
+  if (isnan(RH) || isnan(T) || isnan(f)|| isnan(HI)) {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+
+  Serial.print(F("Heat Index: "));
+  Serial.print(HI);
+  Serial.print("                 ");
+
+  if (HI > 80 and HI <= 90) {
+    myservo.write(155);
+    Serial.println(F(" Heat Index Classification: Caution "));
+  }
+
+  else if (HI > 90 and HI <= 103) {
+    myservo.write(120);
+    Serial.println(F(" Heat Index Classification: Extreme Caution "));
+  }
+
+  else if (HI > 103 and HI <= 124) {
+    myservo.write(70);
+    Serial.println(F(" Heat Index Classification: Danger "));
+  }
+
+  else if (HI > 125) {
+    myservo.write(30);
+    Serial.println(F(" Heat Index Classification: Extreme Danger "));
+  }
+
+  delay(1000);
+}
